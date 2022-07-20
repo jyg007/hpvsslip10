@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	 "encoding/asn1"
+	"encoding/asn1"
 	 "bytes"
 	 
 	"hpvsslip10/ep11"
@@ -66,6 +66,7 @@ func slip10_deriveKey(deriveType string, childKeyIndex uint64, hardened bool, ba
 }
 
 
+
 func main() {
 
     cryptoClient = getGrep11Server()
@@ -88,7 +89,7 @@ func main() {
   	var index uint64
   	var hardened bool
     for i:=1; i<len(path); i++ {
-    	if path[i][len(path[i])-1] == []byte("'")[0] {
+    	if path[i][len(path[i])-1] == []byte("h")[0] {
     		hardened = true
     		index , _= strconv.ParseUint(string(path[i][:len(path[i])-1]),10,64)
     	} else {
@@ -102,17 +103,14 @@ func main() {
 	    Sk , Chaincode = slip10_deriveKey("PRV2PRV", index, hardened, Sk, Chaincode)   	
     }
 
-    var pk []byte
-    if len(path)>1 {
- 		   pk , _ = slip10_deriveKey("PRV2PUB", index, hardened, prevSk, prevChaincode)   	
-    }
- 
     sKeyHex := make([]byte, hex.EncodedLen(len(Sk)))
     hex.Encode(sKeyHex, Sk)
     fmt.Println("Derived Private Key: " +string(sKeyHex)+"\n")
 
     if len(path)>1 {
-	    pKeyHex := make([]byte, hex.EncodedLen(len(pk)))
+    	pk_tmp , _ := slip10_deriveKey("PRV2PUB", index, hardened, prevSk, prevChaincode)
+ 		pk, _ := GetPubkeyBytesFromSPKI(pk_tmp)
+   	    pKeyHex := make([]byte, hex.EncodedLen(len(pk)))
 	    hex.Encode(pKeyHex, pk)
 	    fmt.Println("Derived Public Key: " +string(pKeyHex)+"\n")
 	}

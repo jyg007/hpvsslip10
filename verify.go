@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/hex"
+		"encoding/asn1"
 	"context"
 	"fmt"
 	"os"
@@ -20,6 +21,18 @@ func main()( ) {
     pk := make([]byte, hex.DecodedLen(len(os.Args[3])))
     hex.Decode(pk, []byte(os.Args[3]))
 
+    key := ecPubKeyASN{	 Ident: ecKeyIdentificationASN{ 
+    								KeyType : asn1.ObjectIdentifier{1, 2, 840, 10045, 2, 1}, 
+    								Curve   : asn1.ObjectIdentifier{1, 3, 132, 0, 10},
+    							},
+    					 Point: asn1.BitString{ Bytes: pk, BitLength: 520},
+    		}
+
+    pkk , err := asn1.Marshal(key)
+    if (err != nil) {
+        panic(err)
+    }
+
     sign := make([]byte, hex.DecodedLen(len(os.Args[2])))
     hex.Decode(sign, []byte(os.Args[2]))
 
@@ -28,7 +41,7 @@ func main()( ) {
     //*****************************************************************
 	verifyRequest := &pb.VerifySingleRequest{
 		Mech:   	&pb.Mechanism{Mechanism: ep11.CKM_ECDSA},
-		PubKey: 	pk,
+		PubKey: 	pkk,
 		Data:       []byte(signData[:]),
 		Signature:  sign,
 	}

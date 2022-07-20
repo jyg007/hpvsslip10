@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"bytes"
 	"encoding/binary"
+	"encoding/asn1"
 
 	"hpvsslip10/ep11"
 	pb "hpvsslip10/grpc"
@@ -86,4 +87,29 @@ func AttributeValue(v interface{}) *pb.AttributeValue {
 		binary.Write(buf, binary.BigEndian, val)
 		return &pb.AttributeValue{OneAttr: &pb.AttributeValue_AttributeB{AttributeB: buf.Bytes()}}
 	}
+}
+
+
+// ecKeyIdentificationASN defines the ECDSA priviate/public key identifier for GREP11
+type ecKeyIdentificationASN struct {
+        KeyType asn1.ObjectIdentifier
+        Curve   asn1.ObjectIdentifier
+}
+
+
+type ecPubKeyASN struct {
+        Ident ecKeyIdentificationASN
+        Point asn1.BitString
+}
+
+
+
+// GetPubkeyBytesFromSPKI extracts a coordinate bit array from the public key in SPKI format
+func GetPubkeyBytesFromSPKI(spki []byte) ([]byte, error) {
+	decode := &ecPubKeyASN{}
+	_, err := asn1.Unmarshal(spki, decode)
+	if err != nil {
+		return nil, fmt.Errorf("failed unmarshaling public key: [%s]", err)
+	}
+	return decode.Point.Bytes, nil
 }
