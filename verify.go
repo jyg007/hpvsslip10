@@ -25,7 +25,7 @@ func main()( ) {
     								KeyType : asn1.ObjectIdentifier{1, 2, 840, 10045, 2, 1}, 
     								Curve   : asn1.ObjectIdentifier{1, 3, 132, 0, 10},
     							},
-    					 Point: asn1.BitString{ Bytes: pk, BitLength: 520},
+    					 Point: asn1.BitString{ Bytes: pk, BitLength: 8*len(pk)},
     		}
 
     pkk , err := asn1.Marshal(key)
