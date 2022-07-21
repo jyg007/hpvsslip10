@@ -21,10 +21,8 @@ import (
 	"fmt"
 	"os"
 	"encoding/hex"
-
 	"hpvsslip10/ep11"
 	pb "hpvsslip10/grpc"
-
 )
 
 var cryptoClient pb.CryptoClient
@@ -41,7 +39,7 @@ func main() {
 	}
 
     cryptoClient = getGrep11Server()
-   	defer disconnectGrep11Server() 
+    defer disconnectGrep11Server() 
 
 
    	// Create an ephemeral AES key
@@ -104,15 +102,5 @@ func main() {
 		panic(fmt.Errorf("Unwrap key error: %s", err))
 	}
 
-	blob := unWrappedResponse.UnwrappedBytes
-
-	keyBlobAttrs := unWrappedResponse.Unwrapped.Attributes
-
-	fmt.Printf("Value of WKID:\n%s\n", hex.Dump(keyBlobAttrs[ep11.CKA_GREP11_WKID].GetAttributeB()))
-    //fmt.Printf("Value of WKID:\n%s\n", len(keyBlobAttrs[ep11.CKA_GREP11_WKID].GetAttributeB()))
-
-    KeyHex := make([]byte, hex.EncodedLen(len(blob)))
-    hex.Encode(KeyHex, blob)
-    fmt.Println("Master Seed: " +string(KeyHex)+"\n")
-
+	fmt.Println("Master Seed: " +hex.EncodeToString(unWrappedResponse.UnwrappedBytes)+"\n")
 }
