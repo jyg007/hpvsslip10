@@ -72,23 +72,23 @@ func main()( ) {
 	if err != nil {
 		panic(fmt.Errorf("Sign error: %s", err))
 	}
- 	//*****************************************************************
-	 //   sig := toByte(sigResponse.Signature)
-        r := new(big.Int).SetBytes(SignResponse.Signature[:32])
-        //s := new(big.Int).SetBytes(sig[32:64])
 
-  		n := new(big.Int)
-    	n.SetString("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
+    //r := new(big.Int).SetBytes(SignResponse.Signature[:32])
+    s := new(big.Int).SetBytes(SignResponse.Signature[32:64])
 
+	n := new(big.Int)
+    n.SetString("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
+    two := big.NewInt(2)
+
+    // Diviser number par 2
+    result := new(big.Int)
+    result.Div(n, two)
     
-    	suf:="1b"
-    	if (n.Cmp(r)==1) {
-    		suf="1c"
-    	}
+    suf:="1c"
+    if (result.Cmp(s)==1) {
+    	suf="1b"
+    }
 
-
- 	   	sign := make([]byte, hex.EncodedLen(len(SignResponse.Signature)))
-       	hex.Encode(sign, SignResponse.Signature)
-       	fmt.Println("signature: 0x" +string(sign)+suf)
+    fmt.Println("signature: 0x" +hex.EncodeToString(SignResponse.Signature)+suf)
 
 }
