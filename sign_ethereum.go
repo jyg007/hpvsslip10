@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"bytes"
 	"hpvsslip10/ep11"
 	pb "hpvsslip10/grpc"
     "encoding/asn1"
@@ -73,22 +74,51 @@ func main()( ) {
 		panic(fmt.Errorf("Sign error: %s", err))
 	}
 
-    //r := new(big.Int).SetBytes(SignResponse.Signature[:32])
+    r := new(big.Int).SetBytes(SignResponse.Signature[:32])
     s := new(big.Int).SetBytes(SignResponse.Signature[32:64])
 
 	n := new(big.Int)
     n.SetString("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16)
     two := big.NewInt(2)
 
-    // Diviser number par 2
-    result := new(big.Int)
-    result.Div(n, two)
-    
-    suf:="1c"
-    if (result.Cmp(s)==1) {
-    	suf="1b"
-    }
+    /*
+            URL: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-2.md
+            All transaction signatures whose s-value is greater than secp256k1n/2 are now considered invalid.
+            The ECDSA recover precompiled contract remains unchanged and will keep accepting high s-values; this is useful
+            e.g. if a contract recovers old Bitcoin signatures.
+    */
 
-    fmt.Println("signature: 0x" +hex.EncodeToString(SignResponse.Signature)+suf)
+    halfN := new(big.Int)
+    halfN.Div(n, two)
+
+    if halfN.Cmp(s) == -1 {
+           s = s.Sub(n, s)
+    } 
+    
+    sig := make([]byte,65)
+    //copy(sig,SignResponse.Signature[:])
+    copy(sig[:32],r.Bytes())
+    copy(sig[32:64],s.Bytes())
+	sig[64] = 0x00
+
+    publicK, err := crypto.Ecrecover(signData[:], sig)
+    if err != nil {
+        fmt.Println("Error recovering public key:", err)
+        return
+    } else if ! bytes.Equal(publicKeyBytes,publicK) {
+			sig[64] = 0x01
+    		// Recover public key from signature
+    		publicK, err = crypto.Ecrecover(signData[:], sig)
+    		if err != nil {
+        		fmt.Println("Error recovering public key:", err)
+        		return
+    		}
+    	} 
+ 
+  //  fmt.Println("Public Key", hex.EncodeToString(publicK))
+    
+    sig[64]+=0x1b
+
+    fmt.Println("signature: 0x" +hex.EncodeToString(sig))
 
 }
