@@ -16,5 +16,5 @@ createseed: createseed.go connect.go util.go
 	go build $^ 
 
 clean:
-	rm derivekey  sign verify createseed
+	rm derivekey  sign verify createseed sign_ethereum
 
