@@ -55,6 +55,10 @@ func main()( ) {
     
 
 	messageHash := crypto.Keccak256([]byte(os.Args[1]))
+	/*
+	 msg := make([]byte, hex.DecodedLen(len(os.Args[1])))
+     hex.Decode(msg, []byte(os.Args[1]))
+   messageHash := crypto.Keccak256(msg)*/
 
 	prefix := "\x19Ethereum Signed Message:\n32"
 	messageWithPrefix := append([]byte(prefix), messageHash...)
